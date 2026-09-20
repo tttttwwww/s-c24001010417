@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>萌宠用品小店 · 宠物用品销售网站</title>
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#ffffff; --ink:#2E2419; --muted:#8A7A68;
+    --accent:#E07B39; --accent-deep:#C8632A;
+    --food:#E07B39; --toy:#3E8E7E; --item:#9C5A3C;
+    --line:#ECE0D2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.6}
+  button{font-family:inherit;cursor:pointer;border:none}
+  input,select{font-family:inherit}
+
+  /* ===== 顶部导航 ===== */
+  nav{position:sticky;top:0;z-index:50;background:#fff;
+      border-bottom:1px solid var(--line);display:flex;align-items:center;
+      justify-content:space-between;padding:14px 32px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px}
+  .brand svg{width:30px;height:30px}
+  .nav-links{display:flex;gap:24px;font-size:15px;color:var(--muted)}
+  .nav-links a{color:inherit;text-decoration:none}
+  .cart-btn{position:relative;background:var(--accent);color:#fff;border-radius:999px;
+            padding:9px 18px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .cart-btn:hover{background:var(--accent-deep)}
+  .cart-badge{position:absolute;top:-6px;right:-6px;background:#B33A2A;color:#fff;
+              width:22px;height:22px;border-radius:50%;font-size:12px;
+              display:flex;align-items:center;justify-content:center;font-weight:700}
+
+  /* ===== Hero ===== */
+  header{background:linear-gradient(135deg,#FFF3E4 0%,#FBD9B8 100%);
+         padding:64px 32px;text-align:center}
+  header h1{font-size:42px;letter-spacing:1px;margin-bottom:12px}
+  header h1 em{font-style:normal;color:var(--accent)}
+  header p{color:#6B5A47;font-size:17px;margin-bottom:24px}
+  .cta{background:var(--accent);color:#fff;padding:12px 32px;border-radius:999px;
+       font-size:16px;box-shadow:0 6px 18px rgba(224,123,57,.35)}
+  .cta:hover{background:var(--accent-deep)}
+
+  /* ===== 筛选区 ===== */
+  .toolbar{max-width:1200px;margin:32px auto 8px;padding:0 24px;
+           display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .search{flex:1;min-width:220px;position:relative}
+  .search input{width:100%;padding:11px 16px 11px 42px;border:1px solid var(--line);
+                border-radius:999px;font-size:15px;background:#fff;outline:none}
+  .search input:focus{border-color:var(--accent)}
+  .search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);
+              width:18px;height:18px;color:var(--muted)}
+  .pills{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{padding:8px 18px;border-radius:999px;background:#fff;border:1px solid var(--line);
+        font-size:14px;color:var(--muted)}
+  .pill.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .price-filter{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+  .price-filter input{width:90px;padding:8px 10px;border:1px solid var(--line);
+                      border-radius:10px;font-size:14px;background:#fff}
+
+  /* ===== 商品网格 ===== */
+  .grid{max-width:1200px;margin:24px auto 60px;padding:0 24px;
+        display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+  .card{background:var(--card);border-radius:18px;overflow:hidden;
+        border:1px solid var(--line);display:flex;flex-direction:column;
+        transition:transform .18s,box-shadow .18s}
+  .card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(80,50,20,.10)}
+  .thumb{height:150px;display:flex;align-items:center;justify-content:center}
+  .thumb svg{width:74px;height:74px}
+  .body{padding:16px;flex:1;display:flex;flex-direction:column;gap:6px}
+  .tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;width:fit-content}
+  .tag.food{background:#FCE7D6;color:var(--food)}
+  .tag.toy{background:#DDF0EB;color:var(--toy)}
+  .tag.item{background:#F3E2D6;color:var(--item)}
+  .name{font-size:17px;font-weight:600}
+  .stock{font-size:13px;color:var(--muted)}
+  .row{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:10px}
+  .price{color:var(--accent);font-weight:700;font-size:20px}
+  .price small{font-size:12px;font-weight:400}
+  .add{background:var(--ink);color:#fff;border-radius:10px;padding:8px 14px;font-size:14px}
+  .add:hover{background:var(--accent)}
+  .empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:60px 0}
+
+  /* ===== 购物车抽屉 ===== */
+  .mask{position:fixed;inset:0;background:rgba(40,25,10,.4);z-index:90;
+        opacity:0;pointer-events:none;transition:opacity .25s}
+  .mask.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:-400px;width:380px;max-width:90vw;height:100vh;
+          background:#fff;z-index:100;transition:right .28s;display:flex;flex-direction:column;
+          box-shadow:-8px 0 30px rgba(0,0,0,.15)}
+  .drawer.show{right:0}
+  .drawer h3{padding:20px;border-bottom:1px solid var(--line);font-size:18px}
+  .cart-list{flex:1;overflow:auto;padding:16px 20px}
+  .cart-item{display:flex;justify-content:space-between;align-items:center;
+             padding:12px 0;border-bottom:1px dashed var(--line)}
+  .cart-item .nm{font-size:15px}
+  .cart-item .pr{color:var(--accent);font-weight:600;font-size:14px}
+  .qty{display:flex;align-items:center;gap:8px}
+  .qty button{width:26px;height:26px;border-radius:8px;background:#F3ECE2;font-size:15px}
+  .foot{padding:18px 20px;border-top:1px solid var(--line)}
+  .total{display:flex;justify-content:space-between;font-size:17px;margin-bottom:14px}
+  .checkout{width:100%;background:var(--accent);color:#fff;padding:13px;
+            border-radius:12px;font-size:16px}
+  .checkout:hover{background:var(--accent-deep)}
+
+  /* ===== Toast ===== */
+  .toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%) translateY(20px);
+         background:var(--ink);color:#fff;padding:10px 22px;border-radius:999px;
+         font-size:14px;opacity:0;transition:.25s;z-index:200;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  footer{text-align:center;color:var(--muted);font-size:13px;padding:28px;
+         border-top:1px solid var(--line)}
+
+  @media (max-width:960px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.grid{grid-template-columns:1fr} header h1{font-size:30px}
+    .search input,.price-filter input{font-size:16px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="#E07B39"><path d="M12 12c-2.5 0-4.5 2-4.5 4.2 0 1.9 1.4 3.3 3.2 3.3.9 0 1.4-.3 2.1-.3s1.2.3 2.1.3c1.8 0 3.2-1.4 3.2-3.3C16.5 14 14.5 12 12 12zM6.5 8a1.8 1.8 0 100 3.6 1.8 1.8 0 000-3.6zm11 0a1.8 1.8 0 100 3.6 1.8 1.8 0 000-3.6zM9 4.5a1.6 1.6 0 100 3.2 1.6 1.6 0 000-3.2zm6 0a1.6 1.6 0 100 3.2 1.6 1.6 0 000-3.2z"/></svg>
+    萌宠用品小店
+  </div>
+  <div class="nav-links">
+    <a href="#shop">全部商品</a>
+    <a href="#shop">分类</a>
+  </div>
+  <button class="cart-btn" onclick="toggleCart(true)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.6 13.4a2 2 0 002 1.6h9.7a2 2 0 002-1.6L23 6H6"/></svg>
+    购物车<span class="cart-badge" id="badge">0</span>
+  </button>
+</nav>
+
+<header>
+  <h1>给<em>毛孩子</em>更好的生活</h1>
+  <p>精选宠物食品、玩具与日常用品，品质安心 · 价格亲民</p>
+  <button class="cta" onclick="document.getElementById('shop').scrollIntoView({behavior:'smooth'})">立即逛逛</button>
+</header>
+
+<section class="toolbar" id="shop">
+  <div class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="kw" type="text" placeholder="搜索商品名称…" oninput="render()">
+  </div>
+  <div class="pills" id="pills">
+    <button class="pill active" data-cat="全部" onclick="setCat(this)">全部</button>
+    <button class="pill" data-cat="食品" onclick="setCat(this)">食品</button>
+    <button class="pill" data-cat="玩具" onclick="setCat(this)">玩具</button>
+    <button class="pill" data-cat="用品" onclick="setCat(this)">用品</button>
+  </div>
+  <div class="price-filter">
+    价格
+    <input id="minP" type="number" placeholder="最低" oninput="render()">
+    ~
+    <input id="maxP" type="number" placeholder="最高" oninput="render()">
+  </div>
+</section>
+
+<main class="grid" id="grid"></main>
+
+<div class="mask" id="mask" onclick="toggleCart(false)"></div>
+<aside class="drawer" id="drawer">
+  <h3>我的购物车</h3>
+  <div class="cart-list" id="cartList"></div>
+  <div class="foot">
+    <div class="total"><span>合计</span><span id="total">¥0.00</span></div>
+    <button class="checkout" onclick="checkout()">去结算</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast">已加入购物车</div>
+
+<footer>© 萌宠用品小店 · 宠物用品销售网站（课程项目演示）</footer>
+
+<script>
+const PRODUCTS = [
+  {id:1, name:"皇家猫粮",   cat:"食品", price:188.00, stock:50},
+  {id:2, name:"宝路狗粮",   cat:"食品", price:128.00, stock:40},
+  {id:3, name:"逗猫棒",     cat:"玩具", price:19.90,  stock:100},
+  {id:4, name:"狗咬胶",     cat:"玩具", price:25.00,  stock:80},
+  {id:5, name:"猫砂盆",     cat:"用品", price:59.00,  stock:30},
+  {id:6, name:"狗窝",       cat:"用品", price:89.00,  stock:25},
+  {id:7, name:"宠物饮水器", cat:"用品", price:45.00,  stock:35},
+  {id:8, name:"小鱼干零食", cat:"食品", price:15.90,  stock:120}
+];
+
+const CAT_COLOR = {食品:"var(--food)", 玩具:"var(--toy)", 用品:"var(--item)"};
+
+// 分类小插画（内联 SVG）
+function thumb(cat){
+  const c = CAT_COLOR[cat];
+  if(cat==="食品") return `<svg viewBox="0 0 64 64" fill="none" stroke="${c}" stroke-width="2.5"><path d="M10 30h44c0 12-9 22-22 22S10 42 10 30z"/><path d="M20 30c0-8 5-14 12-14M32 16c3 2 5 5 5 9" stroke-linecap="round"/><circle cx="24" cy="38" r="2" fill="${c}"/><circle cx="34" cy="41" r="2" fill="${c}"/><circle cx="43" cy="37" r="2" fill="${c}"/></svg>`;
+  if(cat==="玩具") return `<svg viewBox="0 0 64 64" fill="none" stroke="${c}" stroke-width="2.5"><circle cx="32" cy="34" r="18"/><circle cx="32" cy="34" r="8"/><path d="M32 16V8M20 22l-6-6M44 22l6-6" stroke-linecap="round"/></svg>`;
+  return `<svg viewBox="0 0 64 64" fill="none" stroke="${c}" stroke-width="2.5"><path d="M8 40c0-8 6-14 14-14h20c8 0 14 6 14 14v6H8z"/><path d="M14 46v6M50 46v6" stroke-linecap="round"/></svg>`;
+}
+
+let curCat = "全部";
+let cart = JSON.parse(localStorage.getItem("petshop_cart")||"{}");
+
+function setCat(btn){
+  document.querySelectorAll(".pill").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  curCat = btn.dataset.cat;
+  render();
+}
+
+function render(){
+  const kw = document.getElementById("kw").value.trim();
+  const min = parseFloat(document.getElementById("minP").value)||0;
+  const max = parseFloat(document.getElementById("maxP").value)||Infinity;
+  const list = PRODUCTS.filter(p=>
+    (curCat==="全部"||p.cat===curCat) &&
+    (!kw || p.name.includes(kw)) &&
+    p.price>=min && p.price<=max
+  );
+  const grid = document.getElementById("grid");
+  if(!list.length){
+    grid.innerHTML = `<div class="empty">没有找到符合条件的商品，换个条件试试～</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(p=>`
+    <div class="card">
+      <div class="thumb" style="background:${CAT_COLOR[p.cat]}1A">${thumb(p.cat)}</div>
+      <div class="body">
+        <span class="tag ${p.cat==="食品"?"food":p.cat==="玩具"?"toy":"item"}">${p.cat}</span>
+        <div class="name">${p.name}</div>
+        <div class="stock">库存 ${p.stock} 件</div>
+        <div class="row">
+          <div class="price"><small>¥</small>${p.price.toFixed(2)}</div>
+          <button class="add" onclick="addToCart(${p.id})">加入购物车</button>
+        </div>
+      </div>
+    </div>`).join("");
+}
+
+function addToCart(id){
+  cart[id] = (cart[id]||0)+1;
+  saveCart();
+  showToast("已加入购物车："+PRODUCTS.find(p=>p.id===id).name);
+}
+function changeQty(id,d){
+  cart[id] = (cart[id]||0)+d;
+  if(cart[id]<=0) delete cart[id];
+  saveCart();
+}
+function saveCart(){
+  localStorage.setItem("petshop_cart", JSON.stringify(cart));
+  renderCart();
+}
+function renderCart(){
+  const list = document.getElementById("cartList");
+  const ids = Object.keys(cart);
+  let total=0, count=0;
+  if(!ids.length){
+    list.innerHTML = `<div style="color:#8A7A68;text-align:center;padding:40px 0">购物车还是空的～</div>`;
+  } else {
+    list.innerHTML = ids.map(id=>{
+      const p = PRODUCTS.find(x=>x.id==id);
+      const q = cart[id];
+      total += p.price*q; count += q;
+      return `<div class="cart-item">
+        <div><div class="nm">${p.name}</div><div class="pr">¥${p.price.toFixed(2)} × ${q}</div></div>
+        <div class="qty">
+          <button onclick="changeQty(${id},-1)">−</button>
+          <button onclick="changeQty(${id},1)">＋</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+  document.getElementById("total").textContent = "¥"+total.toFixed(2);
+  document.getElementById("badge").textContent = count;
+}
+function toggleCart(show){
+  document.getElementById("drawer").classList.toggle("show",show);
+  document.getElementById("mask").classList.toggle("show",show);
+}
+function checkout(){
+  const n = Object.keys(cart).length;
+  if(!n){ showToast("购物车是空的"); return; }
+  showToast("下单成功（演示），感谢购买！");
+  cart = {}; saveCart(); toggleCart(false);
+}
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"),1800);
+}
+render();
+renderCart();
+</script>
+</body>
+</html>
