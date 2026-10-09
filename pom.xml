@@ -5,16 +5,71 @@
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- ============================================================
+         第一版：控制台版（无任何依赖，纯 JDK）
+         现在升级为：Spring Boot Web 版
+         ① 用 spring-boot-starter-parent 统一管理依赖版本
+         ② 加 spring-boot-starter-web：写 REST 接口、内置 Tomcat、Jackson 转 JSON
+         ③ 加 spring-boot-starter-test：写单元测试
+         ④ 加 exec-maven-plugin：控制台入口 PetShopView 仍然可以一条命令跑起来
+         ============================================================ -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.2</version>
+        <relativePath/>
+    </parent>
+
     <groupId>com.neusoft</groupId>
     <artifactId>pet-shop</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>宠物用品销售网站（控制台版）</name>
-    <description>三级项目选题：宠物用品销售系统——分层架构 Model / DAO / Service / Controller / View</description>
+    <name>宠物用品销售网站</name>
+    <description>
+        三级项目选题：宠物用品销售系统。
+        分层架构 Model / DAO / Service / Controller / View；
+        对外提供两种入口：浏览器 Web 页面（REST 接口 + 静态页）与控制台菜单。
+    </description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <dependencies>
+        <!-- 写 REST 接口、内置 Tomcat、Jackson 自动把对象转成 JSON -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- 单元测试：JUnit 5 + AssertJ + Spring 测试支持 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 打包成可执行 jar：java -jar target/pet-shop-1.0-SNAPSHOT.jar -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- 保留控制台入口：
+                 mvn compile exec:java -Dexec.mainClass=com.neusoft.petshop.view.PetShopView
+                 （用 exec 插件跑是因为加了 Spring 之后，target/classes 不再能单独 java -cp 运行） -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <mainClass>com.neusoft.petshop.view.PetShopView</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

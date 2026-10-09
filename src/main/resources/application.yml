@@ -1,0 +1,22 @@
+# ============================================
+# 宠物用品销售网站 —— application.yml
+# 第一版是纯控制台程序，没有配置文件；
+# 升级为 Web 版之后，Spring Boot 靠这个文件找端口、静态页和日志级别
+# ============================================
+server:
+  # 启动后浏览器访问 http://localhost:8080
+  port: 8080
+
+spring:
+  application:
+    name: pet-shop
+
+  jackson:
+    serialization:
+      # 时间不要输出成时间戳数字，要输出成我们看得懂的字符串
+      write-dates-as-timestamps: false
+
+# 打印日志：学习阶段开 debug，能看到 Spring MVC 映射了哪些接口
+logging:
+  level:
+    com.neusoft.petshop: debug

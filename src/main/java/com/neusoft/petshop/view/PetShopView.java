@@ -124,11 +124,24 @@ public class PetShopView {
         System.out.println("【按价格区间查询】");
         BigDecimal min = readPrice("请输入最低价格：");
         BigDecimal max = readPrice("请输入最高价格：");
+
+        // 修掉的 bug：Service 里「最低价 > 最高价会自动交换」，
+        // 但第一版的标题直接打印用户输入的两个数，于是输反时会显示成
+        //   === 价格 100 ~ 20 的商品 ===
+        // 而实际查出来的是 20~100 的商品，看着自相矛盾。
+        // 这里先排好序再打印，标题就和真实查询区间一致了。
+        BigDecimal low = min.min(max);
+        BigDecimal high = min.max(max);
+        boolean swapped = low.compareTo(min) != 0;
+
         List<PetProduct> list = controller.listByPriceRange(min, max);
         if (list.isEmpty()) {
             System.out.println("该价格区间没有商品。");
         } else {
-            System.out.println("=== 价格 " + min + " ~ " + max + " 的商品（共 " + list.size() + " 件）===");
+            System.out.println("=== 价格 " + low + " ~ " + high + " 的商品（共 " + list.size() + " 件）===");
+            if (swapped) {
+                System.out.println("（提示：最低价大于最高价，已自动按 " + low + " ~ " + high + " 查询）");
+            }
             printList(list);
         }
     }
